@@ -37,7 +37,7 @@ public class CplexSolver {
 	public CplexSolver(IOptimizationModel model) throws IloException {
 
 		solver = new IloCplex();
-		solver.setParam(IloCplex.LongParam.TimeLimit, 240);
+		//solver.setParam(IloCplex.LongParam.TimeLimit, 240);
 		solver.setParam(IloCplex.IntParam.MIPDisplay, 5);
 		generateSolveModel(model);
 		System.out.println("Continious Variable Num:" + startTimes.size());
