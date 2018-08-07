@@ -49,13 +49,13 @@ public interface IJob {
 	boolean isReorganizedJobInCurrentStep();
 
 	//job is one child of a original job
-	boolean fromCompleteSplitting();
+	//boolean fromCompleteSplitting();
 
 	// a new job with some children of a original job
 	boolean fromPartialSplitting();
 
 	//a new job with some other original jobs as children
-	boolean fromCompleteCombining();
+	//boolean fromCompleteCombining();
 
 	//a new job with some children of some original jobs
 	boolean fromPartialCombining();
@@ -67,6 +67,16 @@ public interface IJob {
 	IStep getCurrentStep();
 
 	IStep getPreviousStep();
+
+	void setReorganizedJobACurrentStep(boolean b);
+
+	void setPartialSplitting(boolean b);
+
+	void setPartialCombining(boolean partial);
+
+	//void setCompleteCombining(boolean b);
+
+	//void setCompleteSplitting(boolean b);
 
 
 

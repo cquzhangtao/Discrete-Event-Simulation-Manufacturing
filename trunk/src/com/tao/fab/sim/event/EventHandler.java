@@ -55,9 +55,11 @@ public class EventHandler {
 		for (int i = 0; i < job.getChildren().size(); i++) {
 			if (i % size == 0) {
 				njob = job.newInstance();
+				njob.setPartialSplitting(true);
+				//njob.setCompleteSplitting(false);
 				jobs.add(njob);
 			}
-			njob.getChildren().add(njob);
+			njob.getChildren().add(job.getChildren().get(i));
 		}
 		return jobs;
 	}
@@ -70,13 +72,14 @@ public class EventHandler {
 			IStep cstep = job.getCurrentStep(rg);
 
 			if (cstep.getSplittingConfig() == null && cstep.getBatchingConfig() == null) {
+				job.setReorganizedJobACurrentStep(false);
 				if (!seizeResources(rg, job, time)) {
 					rg.getFrontQueue().add(job);
 				}
 				return;
 			} else if (pstep != null && (cstep.getSplittingConfig() == pstep.getSplittingConfig()
 					|| cstep.getBatchingConfig() == pstep.getBatchingConfig())) {
-
+				job.setReorganizedJobACurrentStep(false);
 				if (!seizeResources(rg, job, time)) {
 					if(rg.getJobTypeInQueue()==rg.getJobType()){
 						rg.getFrontQueue().add(job);
@@ -86,15 +89,19 @@ public class EventHandler {
 				}
 				return;
 			}
+			job.setReorganizedJobACurrentStep(true);
 
 			// complete combining
 			if (rg.getJobType().isCollectionOf(job.getType())) {
 				rg.getFrontQueue().add(job);
-				batching(rg, time);
+				batching(rg, false,time);
 			}
 			// complete Splitting
 			else if (job.getType().isCollectionOf(rg.getJobType())) {
 				List<IJob> subJobs = job.getChildren();
+				for(IJob ijob:subJobs){
+					ijob.setPartialSplitting(false);
+				}
 				rg.getFrontQueue().addAll(subJobs);
 				seizeResources(rg, subJobs, time);
 			}
@@ -110,7 +117,7 @@ public class EventHandler {
 				// partial combining
 				else if (rg.getJobTypeInQueue() == job.getType().getChildType()) {
 					rg.getFrontQueue().addAll(job.getChildren());
-					batching(rg, time);
+					batching(rg,true, time);
 				} else {
 					Log.e(tag, "cannot process the job");
 					return;
@@ -140,7 +147,7 @@ public class EventHandler {
 
 	}
 
-	private void batching(IResourceGroup rg, long time) {
+	private void batching(IResourceGroup rg,boolean partial, long time) {
 
 		if (!rg.hasIdleResource()) {
 			return;
@@ -212,7 +219,8 @@ public class EventHandler {
 			IJob batch = JobPriorityUtil.getJobWithHighestPrioirty(batchesCanGo, tool);
 
 			batches.remove(batch);
-
+			batch.setPartialCombining(partial);
+			//batch.setCompleteCombining(!partial);
 			tool.seize();
 			seizedResource(tool, batch, time);
 			seizedResources(rg, batch);
@@ -239,7 +247,7 @@ public class EventHandler {
 	private void seizedResources(IResourceGroup rg, IJob job) {
 		removeJobFromQueue(rg,job);
 		job.setCurrentStep(job.getCurrentStep(rg));
-		removeJobFromQueuesOfOtherAlternativeResourceGroup(job);
+		removeJobFromQueuesOfOtherAlternativeResourceGroup(rg,job);
 	}
 
 	private boolean seizeResources(IResourceGroup rg, IJob job, long time) {
@@ -278,34 +286,42 @@ public class EventHandler {
 
 	}
 
-	private void removeJobFromQueuesOfOtherAlternativeResourceGroup(IJob job) {
+	private void removeJobFromQueuesOfOtherAlternativeResourceGroup(IResourceGroup rg,IJob job) {
 		// TODO
 		if (!job.isReorganizedJobInCurrentStep()) {
 			removeJobFromQueue(job, job);
 
-		} else if (job.fromCompleteSplitting()) {
-			IJob enterJob = job.getFatherAtCurrentStep();
-			removeJobFromQueue(enterJob, job);
-
-		} else if (job.fromPartialSplitting()) {
-			IJob enterJob = job.getFatherAtCurrentStep();
-			removeJobFromQueue(enterJob, job);
-
-		} else if (job.fromCompleteCombining()) {
-			for (IJob ijob : job.getChildren()) {
-				removeJobFromQueue(ijob, job);
-			}
-
-		} else if (job.fromPartialCombining()) {
-			Set<IJob> removed = new HashSet<IJob>();
-			for (IJob ijob : job.getChildren()) {
-				IJob enterJob = ijob.getFatherBeforeReorganizedAtCurrentStep();
-				if (!removed.contains(enterJob)) {
-					removeJobFromQueue(enterJob, job);
-					removed.add(enterJob);
+		} else if(job.getType().isCollectionOf(rg.getJobTypeInQueue())){
+			if (job.fromPartialCombining()) {
+				Set<IJob> removed = new HashSet<IJob>();
+				for (IJob ijob : job.getChildren()) {
+					IJob enterJob = ijob.getFatherBeforeReorganizedAtCurrentStep();
+					if (!removed.contains(enterJob)) {
+						removeJobFromQueue(enterJob, job);
+						removed.add(enterJob);
+					}
 				}
-			}
-		} else {
+
+			} else {
+				for (IJob ijob : job.getChildren()) {
+					removeJobFromQueue(ijob, job);
+				}
+			} 
+		}else if(job.getType()==rg.getJobTypeInQueue()){
+			if (job.fromPartialSplitting()) {
+				IJob enterJob = job.getFatherAtCurrentStep();
+				removeJobFromQueue(enterJob, job);
+				
+
+			} else  {
+				IJob enterJob = job.getFatherAtCurrentStep();
+				removeJobFromQueue(enterJob, job);
+
+			} 
+		}
+		
+		
+		 else {
 			Log.e(tag, "error in job type from ...");
 			return;
 		}
