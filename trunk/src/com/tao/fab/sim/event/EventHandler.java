@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import simulation.core.event.ISimulationEvent;
+
 public class EventHandler {
 	private static String tag = EventHandler.class.getName();
 
@@ -14,16 +16,19 @@ public class EventHandler {
 		pjob.setProduct(product);
 
 		long nextime = product.getTimeToNextRelease();
-		IEvent event = new IEvent() {
+		AbstractEvent event = new AbstractEvent() {
+
 
 			@Override
-			public void onEvent(long time) {
-
+			public List<ISimulationEvent> response(long currentTime) {
 				releaseJob(product, time);
+				return null;
 			}
 
 		};
-		addEvent(event, nextime);
+		event.setTime(nextime+product.getSimulation().getCurrentTime());
+		product.getSimulation().addEvent(event);;
+	
 
 		pjob.addJobFinishListener(new JobFinishListener() {
 
@@ -73,6 +78,9 @@ public class EventHandler {
 
 			if (cstep.getSplittingConfig() == null && cstep.getBatchingConfig() == null) {
 				job.setReorganizedJobACurrentStep(false);
+				if(cstep.getRequiredResourceGroup()==null){
+					seizedResource(null,job,time);
+				}
 				if (!seizeResources(rg, job, time)) {
 					rg.getFrontQueue().add(job);
 				}
@@ -177,7 +185,16 @@ public class EventHandler {
 				continue;
 			}
 
-			IJob batch = IJob.newInstance();
+			IJob batch=null;
+			try {
+				batch = rg.getJobType().getJobClass().newInstance();
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			BatchingConfiguration bconfig = wafer.getCurrentStep(rg).getBatchingConfig();
 
 			batch.setBatchConfig(bconfig);
@@ -247,7 +264,7 @@ public class EventHandler {
 	private void seizedResources(IResourceGroup rg, IJob job) {
 		removeJobFromQueue(rg,job);
 		job.setCurrentStep(job.getCurrentStep(rg));
-		removeJobFromQueuesOfOtherAlternativeResourceGroup(rg,job);
+		//removeJobFromQueuesOfOtherAlternativeResourceGroup(rg,job);
 	}
 
 	private boolean seizeResources(IResourceGroup rg, IJob job, long time) {
@@ -345,7 +362,7 @@ public class EventHandler {
 	}
 
 	private void seizedResource(IResource res, IJob job, long time) {
-		if (res.hasPrepareJob()) {
+		if (res!=null&&res.hasPrepareJob()) {
 			IJob prepareJob = res.getPrepareJob();
 			prepareJob.addJobFinishListener(new JobFinishListener() {
 				@Override
@@ -371,7 +388,7 @@ public class EventHandler {
 		if(res.getResourceGroup().getJobType()==res.getResourceGroup().getJobTypeInQueue()){
 			oneResourceIdleNoOrg(res,time);
 		}else{
-			batching(res.getResourceGroup(),time);
+			batching(res.getResourceGroup(),false,time);
 		}
 	}
 
@@ -501,6 +518,9 @@ public class EventHandler {
 
 	private void removeJobFromQueue(IJob job) {
 		IResourceGroup rg = job.getCurrentStep().getRequiredResourceGroup();
+		if(rg==null){
+			return;
+		}
 		if (job.getType() == rg.getJobTypeInQueue()) {
 			rg.getFrontQueue().remove(job);
 		} else if (job.getType().isCollectionOf(rg.getJobTypeInQueue())) {
@@ -577,17 +597,18 @@ public class EventHandler {
 
 		} else {
 			long processTime = job.getCurrentStep().getProcessTime();
-			IEvent event = new IEvent() {
+			AbstractEvent event = new AbstractEvent() {
 
 				@Override
-				public void onEvent(long time) {
-
+				public List<ISimulationEvent> response(long currentTime) {
 					releaseResources(job, time);
 					endProcess(job, time);
+					return null;
 				}
 
 			};
-			addEvent(event, processTime);
+			event.setTime(processTime+job.getSimulation().getCurrentTime());
+			job.getSimulation().addEvent(event);
 		}
 	}
 
@@ -598,16 +619,18 @@ public class EventHandler {
 			public void onJobFinish(IJob job) {
 				oneResourceIdle(res, time);
 				long nextTime = res.getNextInterruptionTime();
-				IEvent event = new IEvent() {
+				AbstractEvent event = new AbstractEvent() {
+
 
 					@Override
-					public void onEvent(long time) {
-
+					public List<ISimulationEvent> response(long currentTime) {
 						resourceInterrupted(res, time);
+						return null;
 					}
 
 				};
-				addEvent(event, nextTime);
+				event.setTime(nextTime+job.getSimulation().getCurrentTime());
+				job.getSimulation().addEvent(event);
 
 			}
 		});
@@ -628,9 +651,6 @@ public class EventHandler {
 		}
 	}
 
-	private void addEvent(IEvent event, long time) {
-		// TODO Auto-generated method stub
-
-	}
+	
 
 }

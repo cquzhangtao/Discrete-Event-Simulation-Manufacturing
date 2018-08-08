@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Job implements IJob{
+public class Job extends SimEntity implements IJob{
 	
 	private JobType type;
 	
@@ -13,16 +13,20 @@ public class Job implements IJob{
 	private IJob father;
 	
 	private List<IStep> currentSteps;
-	
+	private IStep currentStep;
+	private IStep previousStep;
 	private List<JobFinishListener> finishListeners=new ArrayList<JobFinishListener>();
 	
 	private Map<IStep,List<IResource>> assignedResources=new HashMap<IStep,List<IResource>>();
 	
 	
-	private List<IStep> firstSteps;
+	private IRoute route;
 	
 	
-	
+	public Job(){
+		//this.route=route;
+		//currentSteps=route.getFirstSteps();
+	}
 	
 
 	@Override
@@ -74,7 +78,6 @@ public class Job implements IJob{
 
 	@Override
 	public boolean canBatch(IJob job) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -92,9 +95,11 @@ public class Job implements IJob{
 
 	@Override
 	public boolean goToNextStep() {
-		// TODO Auto-generated method stub
 		readyResourceCounter=0;
-		return false;
+		previousStep=currentStep;
+		currentSteps=currentStep.getNextSteps();
+		currentStep=null;
+		return currentSteps!=null;
 	}
 
 	@Override
@@ -138,8 +143,106 @@ public class Job implements IJob{
 
 	@Override
 	public IJob clone() {
+		IJob njob=new Job();
+		njob.setRoute(route);
+		return njob;
+	}
+
+	@Override
+	public IJob newInstance() {
+		// TODO Auto-generated method stub
+		return new Job();
+	}
+	
+	@Override
+	public IStep getCurrentStep(IResourceGroup rg) {
+		for(IStep step:currentSteps){
+			if(step.getRequiredResourceGroup()==rg){
+				return step;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public void setCurrentStep(IStep currentStep) {
+		this.currentStep=currentStep;
+		
+	}
+
+	@Override
+	public IStep getCurrentStep() {
+		
+		return currentStep;
+	}
+
+	@Override
+	public IStep getPreviousStep() {
+		return previousStep;
+	}
+
+	@Override
+	public void setReorganizedJobACurrentStep(boolean b) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isReorganizedJobInCurrentStep() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean fromPartialSplitting() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean fromPartialCombining() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+
+	@Override
+	public void setPartialSplitting(boolean b) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setPartialCombining(boolean partial) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public IJob getFatherAtCurrentStep() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public IJob getFatherBeforeReorganizedAtCurrentStep() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public IRoute getRoute() {
+		return route;
+	}
+
+
+	@Override
+	public void setRoute(IRoute route) {
+		this.route=route;
+		currentSteps=route.getFirstSteps();
+		
 	}
 
 }

@@ -4,8 +4,9 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.tao.fab.model.basic.Entity;
-import com.tao.fab.model.product.Step;
+import common.Entity;
+
+
 
 
 /**

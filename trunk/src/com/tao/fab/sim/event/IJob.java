@@ -2,7 +2,7 @@ package com.tao.fab.sim.event;
 
 import java.util.List;
 
-public interface IJob {
+public interface IJob extends ISimEntity{
 
 	JobType getType();
 
@@ -17,6 +17,8 @@ public interface IJob {
 	void addJobFinishListener(JobFinishListener jobFinishListener);
 
 	//void start();
+	
+	IRoute getRoute();
 
 	void oneResourceReady();
 
@@ -73,6 +75,13 @@ public interface IJob {
 	void setPartialSplitting(boolean b);
 
 	void setPartialCombining(boolean partial);
+
+	IJob getFatherAtCurrentStep();
+
+	IJob getFatherBeforeReorganizedAtCurrentStep();
+	
+	void setRoute(IRoute route);
+	
 
 	//void setCompleteCombining(boolean b);
 

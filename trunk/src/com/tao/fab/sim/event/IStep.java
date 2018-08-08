@@ -1,6 +1,6 @@
 package com.tao.fab.sim.event;
 
-
+import java.util.List;
 
 public interface IStep {
 
@@ -17,5 +17,10 @@ public interface IStep {
 	IResourceGroup getRequiredResourceGroup();
 
 	ISplittingConfig getSplittingConfig();
+
+	List<IStep> getNextSteps();
+	void setNextStep(IStep step);
+
+	void setProcessTime(long time);
 
 }
