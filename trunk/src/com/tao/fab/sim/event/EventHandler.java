@@ -410,7 +410,7 @@ public class EventHandler {
 				public List<ISimulationEvent> onJobFinish(IJob job,long time) {
 					List<ISimulationEvent> events=new ArrayList<ISimulationEvent>();
 					job.oneResourceReady();
-					if (job.isAllResourcesReady()) {
+					if (job.isAllResourcesReady(res.getResourceGroup())) {
 						events.addAll(startProcess(job, time));
 					}
 					return events;
@@ -420,7 +420,7 @@ public class EventHandler {
 			events.addAll(startJob(prepareJob, time));
 		} else {
 			job.oneResourceReady();
-			if (job.isAllResourcesReady()) {
+			if (job.isAllResourcesReady(res.getResourceGroup())) {
 				events.addAll(startProcess(job, time));
 			}
 		}
@@ -574,8 +574,8 @@ public class EventHandler {
 		return events;
 	}
 
-	private void removeJobFromQueue(IJob job) {
-		IResourceGroup rg = job.getCurrentStep().getRequiredResourceGroup();
+	private void removeJobFromQueue(IJob job,IResourceGroup rg) {
+		//IResourceGroup rg = job.getCurrentStep().getRequiredResourceGroup();
 		if(rg==null){
 			return;
 		}
@@ -596,7 +596,7 @@ public class EventHandler {
 			for (IStep step : job.getCurrentSteps()) {
 				if(step.getRequiredResourceGroup()==null){
 					job.setCurrentStep(step);
-					events.addAll( startProcess(job,time));
+					events.addAll( startProcess(job,null,time));
 				}else{
 					events.addAll( jobArrive(step.getRequiredResourceGroup(), job, time));	
 				}
@@ -650,8 +650,8 @@ public class EventHandler {
 		return events;
 	}
 
-	protected List<ISimulationEvent> startProcess(IJob job, long time) {
-		removeJobFromQueue(job);
+	protected List<ISimulationEvent> startProcess(IJob job,IResourceGroup rg, long time) {
+		removeJobFromQueue(job,rg);
 		
 		List<ISimulationEvent> events=new ArrayList<ISimulationEvent>();
 		if (job.getCurrentStep().hasResourceJob()) {

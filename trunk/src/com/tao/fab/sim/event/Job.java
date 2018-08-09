@@ -71,9 +71,9 @@ public class Job extends SimEntity implements IJob{
 	}
 
 	@Override
-	public boolean isAllResourcesReady() {
+	public boolean isAllResourcesReady(IResourceGroup rg) {
 		
-		return readyResourceCounter==currentStep.getRequiredResourceNum();
+		return readyResourceCounter==getCurrentStep(rg).getRequiredResourceNum();
 	}
 
 	@Override

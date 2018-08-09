@@ -6,6 +6,10 @@ public class Resource implements IResource{
 	private IJob currrentJob;
 	private IResourceGroup resourceGroup;
 
+	public void setResourceGroup(IResourceGroup resourceGroup) {
+		this.resourceGroup = resourceGroup;
+	}
+
 	@Override
 	public boolean isSeized() {
 		return seized;
@@ -91,5 +95,13 @@ public class Resource implements IResource{
 		// TODO Auto-generated method stub
 		return 0;
 	}
+
+	@Override
+	public void setToolGroup(IResourceGroup resourceGroup) {
+		this.resourceGroup=resourceGroup;
+		
+	}
+
+
 
 }

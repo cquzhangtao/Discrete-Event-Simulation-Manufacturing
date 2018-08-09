@@ -23,7 +23,7 @@ public interface IJob extends ISimEntity{
 
 	void oneResourceReady();
 
-	boolean isAllResourcesReady();
+	boolean isAllResourcesReady(IResourceGroup rg);
 
 	boolean canBatch(IJob job);
 

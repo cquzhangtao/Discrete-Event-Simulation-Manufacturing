@@ -62,7 +62,9 @@ public class ResourceGroup implements IResourceGroup{
 	public void setResourceNumber(int num) {
 		resources=new ArrayList<IResource>();
 		for(int i=0;i<num;i++){
-			resources.add(new Resource());
+			IResource res = new Resource();
+			res.setToolGroup(this);
+			resources.add(res);
 		}
 		
 	}

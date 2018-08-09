@@ -32,4 +32,6 @@ public interface IResource {
 
 	long getNextInterruptionTime();
 
+	void setToolGroup(IResourceGroup resourceGroup);
+
 }

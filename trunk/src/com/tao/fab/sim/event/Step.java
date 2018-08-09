@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Step implements IStep{
 	
-	private int requiredResourceNum;
+	private int requiredResourceNum=1;
 	private long processTime;
 	private IResourceGroup resourceGroup;
 	public void setResourceGroup(IResourceGroup resourceGroup) {
