@@ -23,8 +23,9 @@ public class ProductJob extends Job implements IProductJob{
 	@Override
 	public IProductJob clone() {
 		IProductJob job=new ProductJob();
+		super.clone(job);
 		job.setProduct(product);
-		job.setRoute(getRoute());
+		//job.setRoute(getRoute());
 		return job;
 	}
 

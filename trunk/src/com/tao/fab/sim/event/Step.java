@@ -8,6 +8,10 @@ public class Step implements IStep{
 	private int requiredResourceNum;
 	private long processTime;
 	private IResourceGroup resourceGroup;
+	public void setResourceGroup(IResourceGroup resourceGroup) {
+		this.resourceGroup = resourceGroup;
+	}
+
 	private List<IStep> nextStpes=new ArrayList<IStep>();
 
 	@Override

@@ -5,6 +5,7 @@ import java.util.List;
 public interface IJob extends ISimEntity{
 
 	JobType getType();
+	void setType(JobType lot);
 
 	List<IJob> getChildren();
 

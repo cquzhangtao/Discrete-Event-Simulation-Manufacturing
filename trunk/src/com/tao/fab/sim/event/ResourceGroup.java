@@ -58,4 +58,13 @@ public class ResourceGroup implements IResourceGroup{
 		return jobTypeInFrontQueue;
 	}
 
+	@Override
+	public void setResourceNumber(int num) {
+		resources=new ArrayList<IResource>();
+		for(int i=0;i<num;i++){
+			resources.add(new Resource());
+		}
+		
+	}
+
 }

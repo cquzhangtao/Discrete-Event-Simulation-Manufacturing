@@ -23,4 +23,6 @@ public interface IStep {
 
 	void setProcessTime(long time);
 
+	void setResourceGroup(IResourceGroup rg);
+
 }

@@ -2,6 +2,8 @@ package simulation.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.tao.fab.sim.event.Log;
+
 import common.Entity;
 import simulation.core.event.ISimulationEvent;
 import simulation.core.event.SimulationEventType;
@@ -15,6 +17,7 @@ public class Simulation extends Entity implements ISimulation{
 	private List<ISimulationTerminateCondition> endConditions=new ArrayList<ISimulationTerminateCondition>();
 	private long currentTime;	
 	private boolean running;
+	private String tag=Simulation.class.getName();
 	
 	public void run(){
 		running=true;
@@ -26,7 +29,11 @@ public class Simulation extends Entity implements ISimulation{
 			}
 			eventList.remove(event);
 			currentTime=event.getTime();
-			eventList.addAll(event.response(currentTime));
+			Log.d(tag, currentTime);
+			List<ISimulationEvent> elis = event.response(currentTime);
+			if(elis!=null){
+			eventList.addAll(elis);
+			}
 		}
 	}
 	

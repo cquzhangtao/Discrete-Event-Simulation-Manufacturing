@@ -22,4 +22,6 @@ public interface IResourceGroup {
 
 	JobType getJobTypeInQueue();
 
+	void setResourceNumber(int i);
+
 }

@@ -97,9 +97,13 @@ public class Job extends SimEntity implements IJob{
 	public boolean goToNextStep() {
 		readyResourceCounter=0;
 		previousStep=currentStep;
-		currentSteps=currentStep.getNextSteps();
+		if(currentSteps==null){
+			currentSteps=route.getFirstSteps();
+		}else{
+			currentSteps=currentStep.getNextSteps();
+		}
 		currentStep=null;
-		return currentSteps!=null;
+		return !currentSteps.isEmpty();
 	}
 
 	@Override
@@ -146,6 +150,12 @@ public class Job extends SimEntity implements IJob{
 		IJob njob=new Job();
 		njob.setRoute(route);
 		return njob;
+	}
+	
+	public void clone(IJob job){
+		job.setRoute(route);
+		job.setType(type);
+		super.clone(job);
 	}
 
 	@Override
@@ -241,7 +251,14 @@ public class Job extends SimEntity implements IJob{
 	@Override
 	public void setRoute(IRoute route) {
 		this.route=route;
-		currentSteps=route.getFirstSteps();
+		//currentSteps=route.getFirstSteps();
+		
+	}
+
+
+	@Override
+	public void setType(JobType type) {
+		this.type=type;
 		
 	}
 

@@ -122,5 +122,9 @@ public class Log implements Serializable {
 	 * It needs to be changed when this class gets changed
 	 */ 
 	private static final long serialVersionUID = 1L;
+	public static void w(String tag, String info) {
+		print("Warning",tag,info);
+		
+	}
 
 } 

@@ -9,19 +9,24 @@ public class Test {
 		
 		ISimulation simulation=new Simulation();
 		
+		IResourceGroup rg=new ResourceGroup();
+		rg.setResourceNumber(1);
+		
 		IRoute route=new Route();
 		
 		IStep step=new Step();
 		step.setProcessTime(4);
 		route.setFirstStep(step);
 		
+		step.setResourceGroup(rg);
+		
 		IStep step1=new Step();
 		step1.setProcessTime(3);
-		step1.setNextStep(step);
+		step.setNextStep(step1);
 		
 		IStep step2=new Step();
 		step2.setProcessTime(5);
-		step2.setNextStep(step);
+		step1.setNextStep(step2);
 		
 		
 		IProduct product=new Product();
@@ -30,11 +35,12 @@ public class Test {
 		job.setSimulation(simulation);
 		job.setProduct(product);
 		job.setRoute(route);
+		job.setType(JobType.Lot);
 		
 		product.setProductJob(job);
 		
 		EventHandler h = new EventHandler();
-		h.releaseJob(product, 0);
+		simulation.addEvents(h.releaseJob(product, 0));
 		
 		simulation.run();
 

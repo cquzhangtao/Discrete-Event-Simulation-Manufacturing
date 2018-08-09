@@ -15,5 +15,15 @@ public class SimEntity implements ISimEntity{
 		simulation=sim;
 		
 	}
+	
+	public  ISimEntity clone(){
+		 ISimEntity entity=new SimEntity();
+		entity.setSimulation(simulation);
+		return entity;
+	}
+	
+	public void clone(ISimEntity enity){
+		enity.setSimulation(simulation);
+	}
 
 }
