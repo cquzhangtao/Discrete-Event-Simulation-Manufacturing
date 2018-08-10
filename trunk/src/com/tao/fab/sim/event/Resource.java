@@ -39,26 +39,23 @@ public class Resource implements IResource{
 
 	@Override
 	public boolean hasPrepareJob() {
-		// TODO Auto-generated method stub
-		return false;
+		return resourceGroup.getPrepareJob()!=null;
 	}
 
 	@Override
 	public IJob getPrepareJob() {
-		// TODO Auto-generated method stub
-		return null;
+	
+		return resourceGroup.getPrepareJob();
 	}
 
 	@Override
 	public boolean hasCleanUpJob() {
-		// TODO Auto-generated method stub
-		return false;
+		return resourceGroup.getCleanUpJob()!=null;
 	}
 
 	@Override
 	public IJob getCleanUpJob() {
-		// TODO Auto-generated method stub
-		return null;
+		return resourceGroup.getCleanUpJob();
 	}
 
 	@Override

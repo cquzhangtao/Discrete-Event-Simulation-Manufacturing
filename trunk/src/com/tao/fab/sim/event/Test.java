@@ -11,8 +11,19 @@ public class Test {
 		
 		IResourceGroup rg=new ResourceGroup();
 		rg.setResourceNumber(1);
+		rg.setJobTypeInFrontQueue(JobType.Lot);
+		rg.setJobType(JobType.Lot);
 		
+		IJob prepaerJob=new Job();
 		IRoute route=new Route();
+		prepaerJob.setRoute(route);
+		IStep step0=new Step();
+		step0.setProcessTime(3);
+		route.setFirstStep(step0);
+		
+		
+		
+		 route=new Route();
 		
 		IStep step=new Step();
 		step.setProcessTime(4);

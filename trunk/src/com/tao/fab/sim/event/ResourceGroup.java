@@ -6,15 +6,33 @@ import java.util.List;
 public class ResourceGroup implements IResourceGroup{
 
 	private JobType jobType;
+	
 	private List<IResource> resources;
 	private List<IJob> frontQueue=new ArrayList<IJob>();
 	private JobType jobTypeInFrontQueue;
+	
+	private IJob prepareJob;
+	private IJob cleanUpJob;
+
+
+
 	private List<IJob> frontQueueWithOrganizedJobs=new ArrayList<IJob>();
 	
 	@Override
 	public JobType getJobType() {
 
 		return jobType;
+	}
+	
+	public JobType getJobTypeInFrontQueue() {
+		return jobTypeInFrontQueue;
+	}
+
+	public void setJobTypeInFrontQueue(JobType jobTypeInFrontQueue) {
+		this.jobTypeInFrontQueue = jobTypeInFrontQueue;
+	}
+	public void setJobType(JobType jobType) {
+		this.jobType = jobType;
 	}
 
 	@Override
@@ -68,5 +86,23 @@ public class ResourceGroup implements IResourceGroup{
 		}
 		
 	}
+
+	public IJob getPrepareJob() {
+		return prepareJob;
+	}
+
+	public void setPrepareJob(IJob prepareJob) {
+		this.prepareJob = prepareJob;
+	}
+
+	public IJob getCleanUpJob() {
+		return cleanUpJob;
+	}
+
+	public void setCleanUpJob(IJob cleanUpJob) {
+		this.cleanUpJob = cleanUpJob;
+	}
+
+	
 
 }

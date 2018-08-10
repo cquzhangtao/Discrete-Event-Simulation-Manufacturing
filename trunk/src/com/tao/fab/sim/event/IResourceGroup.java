@@ -24,4 +24,11 @@ public interface IResourceGroup {
 
 	void setResourceNumber(int i);
 
+	void setJobTypeInFrontQueue(JobType type);
+
+	void setJobType(JobType lot);
+
+	IJob getPrepareJob();
+	IJob getCleanUpJob();
+
 }
