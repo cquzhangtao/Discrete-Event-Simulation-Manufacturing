@@ -8,6 +8,8 @@ public class Test {
 	public static void main(String[] args) {
 		
 		ISimulation simulation=new Simulation();
+		IResourceGroup og=new ResourceGroup();
+		og.setResourceNumber(1);
 		
 		IResourceGroup rg=new ResourceGroup();
 		rg.setResourceNumber(1);
@@ -19,8 +21,12 @@ public class Test {
 		prepaerJob.setRoute(route);
 		IStep step0=new Step();
 		step0.setProcessTime(3);
+		step0.setResourceGroup(og);
 		route.setFirstStep(step0);
+		rg.setPrepareJob(prepaerJob);
+		prepaerJob.setSimulation(simulation);
 		
+
 		
 		
 		 route=new Route();

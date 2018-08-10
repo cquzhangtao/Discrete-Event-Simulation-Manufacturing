@@ -46,6 +46,7 @@ public class EventHandler {
 	}
 
 	public List<ISimulationEvent> startJob(IJob job, long time) {
+		Log.d(tag, job.getName()+ "started");
 		return moveJobToNextStep(job,time);
 		/*for (IStep step : job.getCurrentSteps()) {
 			if(step.getRequiredResourceGroup()==null){
@@ -409,7 +410,7 @@ public class EventHandler {
 			IJob prepareJob = res.getPrepareJob();
 			prepareJob.addJobFinishListener(new JobFinishListener() {
 				@Override
-				public List<ISimulationEvent> onJobFinish(IJob job,long time) {
+				public List<ISimulationEvent> onJobFinish(IJob ijob,long time) {
 					List<ISimulationEvent> events=new ArrayList<ISimulationEvent>();
 					job.oneResourceReady();
 					if (job.isAllResourcesReady(res.getResourceGroup())) {
@@ -593,11 +594,11 @@ public class EventHandler {
 		List<ISimulationEvent> events=new ArrayList<ISimulationEvent>();
 		
 		if (job.goToNextStep()) {
-			Log.d(tag, "start step",time);
+			Log.d(tag, job.getName()+ "starts step");
 			for (IStep step : job.getCurrentSteps()) {
 				if(step.getRequiredResourceGroup()==null){
 					job.setCurrentStep(step);
-					events.addAll( startProcess(job,null,time));
+					events.addAll(startProcess(job,null,time));
 				}else{
 					events.addAll( jobArrive(step.getRequiredResourceGroup(), job, time));	
 				}
@@ -626,6 +627,13 @@ public class EventHandler {
 	private List<ISimulationEvent>  endProcess(IJob job, long time) {
 		List<ISimulationEvent> events=new ArrayList<ISimulationEvent>();
 		IResourceGroup rg = job.getCurrentStep().getRequiredResourceGroup();
+		
+		//otherr jobs, like prepare job
+		if(job.getType()==null){
+			events.addAll(moveJobToNextStep(job, time));
+			return events;
+		}
+		
 		// single
 		if (job.getType().isOriginalType()) {
 			events.addAll(moveJobToNextStep(job, time));

@@ -31,4 +31,6 @@ public interface IResourceGroup {
 	IJob getPrepareJob();
 	IJob getCleanUpJob();
 
+	void setPrepareJob(IJob prepaerJob);
+
 }
