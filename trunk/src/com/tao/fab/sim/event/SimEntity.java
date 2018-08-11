@@ -1,8 +1,9 @@
 package com.tao.fab.sim.event;
 
+import common.Entity;
 import simulation.core.ISimulation;
 
-public class SimEntity implements ISimEntity{
+public class SimEntity extends Entity implements ISimEntity{
 
 	private ISimulation simulation;
 	@Override

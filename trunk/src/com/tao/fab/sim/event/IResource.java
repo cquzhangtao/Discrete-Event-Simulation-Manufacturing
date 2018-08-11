@@ -34,4 +34,12 @@ public interface IResource {
 
 	void setToolGroup(IResourceGroup resourceGroup);
 
+	boolean isBlocked();
+
+	IJob getCurrentJob();
+
+	void unblock();
+
+	void block();
+
 }

@@ -33,4 +33,24 @@ public interface IResourceGroup {
 
 	void setPrepareJob(IJob prepaerJob);
 
+	boolean isRearQueueFull();
+
+	void addJobToRearQueue(IJob job);
+
+	void removeJobFromRearQueue(IJob job);
+
+	List<IResourceGroup>  getPreResourceGroups();
+
+	boolean isFrontQueueFull();
+
+	void addJobToRearMergeQueue(IJob job);
+
+	List<IJob> getRearQueue();
+
+	List<IJob> getRearMergQueue();
+
+	boolean hasRearQueue();
+
+	boolean hasFrontQueue();
+
 }

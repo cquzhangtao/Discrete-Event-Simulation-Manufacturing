@@ -5,29 +5,21 @@ import java.util.List;
 import simulation.core.event.ISimulationEvent;
 import simulation.core.event.SimulationEventType;
 
-public abstract class AbstractEvent implements ISimulationEvent{
+public abstract class AbstractEvent {
 
 	
 	private long time;
-	@Override
-	public int compareTo(ISimulationEvent arg0) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	
+	public abstract void response(SimulationEventList eventList,long currentTime);
+	
 
-	@Override
-	public ISimulationEvent clone() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
-	@Override
 	public long getTime() {
 		
 		return time;
 	}
 
-	@Override
+
 	public void setTime(long time) {
 		this.time=time;
 		
@@ -35,28 +27,12 @@ public abstract class AbstractEvent implements ISimulationEvent{
 
 
 
-	@Override
+
 	public SimulationEventType getType() {
 
 		return SimulationEventType.normal;
 	}
 
-	@Override
-	public void setType(SimulationEventType type) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public int getPriority() {
-
-		return 0;
-	}
-
-	@Override
-	public void setPriority(int value) {
-		// TODO Auto-generated method stub
-		
-	}
+	
 
 }

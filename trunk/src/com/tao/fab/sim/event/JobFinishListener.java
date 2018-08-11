@@ -7,5 +7,5 @@ import simulation.core.event.ISimulationEvent;
 public interface JobFinishListener {
 	//public void onJobFinish(IJob job);
 
-	List<ISimulationEvent> onJobFinish(IJob job, long time);
+	void onJobFinish(SimulationEventList eventList,IJob job, long time);
 }

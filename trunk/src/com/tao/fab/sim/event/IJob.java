@@ -82,6 +82,8 @@ public interface IJob extends ISimEntity{
 	IJob getFatherBeforeReorganizedAtCurrentStep();
 	
 	void setRoute(IRoute route);
+	boolean canNextStepAcceptMe();
+	boolean canReleaseResourcesNow();
 	
 
 	//void setCompleteCombining(boolean b);
