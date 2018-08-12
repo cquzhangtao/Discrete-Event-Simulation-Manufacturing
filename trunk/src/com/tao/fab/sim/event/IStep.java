@@ -25,4 +25,14 @@ public interface IStep {
 
 	void setResourceGroup(IResourceGroup rg);
 
+	double getScrapRatio();
+
+	double getSampleRatio();
+
+	double getUnitScrapRatio();
+
+	double getReworkingRatio();
+
+	IStep getReworkingStep();
+
 }

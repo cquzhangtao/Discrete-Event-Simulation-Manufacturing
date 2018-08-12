@@ -20,6 +20,12 @@ public interface IProduct extends ISimEntity{
 
 	boolean isReleaseQueueEmpty();
 
+	void stopRelease();
+
+	boolean isReleaseStopped();
+
+	void continueReleaseJob();
+
 	
 	
 	

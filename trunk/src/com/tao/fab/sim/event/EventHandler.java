@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import simulation.core.event.ISimulationEvent;
@@ -28,7 +29,6 @@ public class EventHandler {
 			}
 		});
 
-		// return
 
 		if (!startJob(eventList, pjob, time)) {
 			product.addJobToReleaseQueue(pjob);
@@ -46,6 +46,8 @@ public class EventHandler {
 
 			};
 			eventList.add(event, nextime);
+		}else{
+			product.stopRelease();
 		}
 
 		// event.setTime(+product.getSimulation().getCurrentTime());
@@ -379,18 +381,22 @@ public class EventHandler {
 			}
 		}else if(job instanceof IProductJob){
 			for(IProduct product:((IProductJob) job).getProduct().getAllProducts()){
+				if (rg.isFrontQueueFull()) {
+					break;
+				}
 				for(int i=0;i<product.getReleaseQueue().size();i++){
+					if (rg.isFrontQueueFull()) {
+						break;
+					}
 					IJob pjob=product.getReleaseQueue().get(i);
 					if(startJob(eventList,pjob,time)){
 						product.getReleaseQueue().remove(i);
 						i--;
 					}
-					if (rg.isFrontQueueFull()) {
-						break;
-					}
-				}
-				if (!product.isReleaseQueueEmpty()) {
 
+				}
+				if (product.isReleaseStopped()&&!product.isReleaseQueueFull()) {
+					product.continueReleaseJob();
 					long nextime = product.getTimeToNextRelease();
 					AbstractEvent event = new AbstractEvent() {
 
@@ -736,9 +742,51 @@ public class EventHandler {
 			return;
 		}
 	}
+	
+	private void releaseAllResourcesSeizedByJob(SimulationEventList eventList, IJob job, long time){
+		//TODO
+	}
 
+	private Random random=new Random();
 	private void moveJobToNextStep(SimulationEventList eventList, IJob job, long time) {
 		// void events=new Arrayvoid();
+		releaseHeldResourcesByJob(eventList,job,time);
+		if(job instanceof IProductJob){
+			if(random.nextDouble()<job.getCurrentStep().getSampleRatio()){
+				//scrap
+				
+				if(random.nextDouble()<job.getCurrentStep().getScrapRatio()){
+					//scrap lot
+					releaseAllResourcesSeizedByJob(eventList,job,time);
+					return;
+					
+				}else{
+					int scrapUnitNum=(int) (job.getChildren().size()*job.getCurrentStep().getUnitScrapRatio());
+					for(int i=0;i<scrapUnitNum;i++){
+						job.getChildren().remove(i);
+					}
+					
+				}
+				
+				//reworking
+				if(random.nextDouble()<job.getCurrentStep().getReworkingRatio()){
+					//scrap lot
+					releaseAllResourcesSeizedByJob(eventList,job,time);
+					moveJobToStep(eventList,job,job.getCurrentStep().getReworkingStep(),time);
+					return;
+					
+				}else{
+					int scrapUnitNum=(int) (job.getChildren().size()*job.getCurrentStep().getUnitScrapRatio());
+					IJob njob=new Job();
+					//TODO config job
+					for(int i=0;i<scrapUnitNum;i++){
+						job.getChildren().remove(i);
+						njob.getChildren().add(job.getChildren().get(i));
+					}
+					moveJobToStep(eventList,njob,job.getCurrentStep().getReworkingStep(),time);
+				}
+			}
+		}
 
 		if (job.goToNextStep()) {
 			Log.d(tag, job.getName() + "starts step");
@@ -761,6 +809,28 @@ public class EventHandler {
 			}
 		}
 		return;// events;
+	}
+
+	private void releaseHeldResourcesByJob(SimulationEventList eventList, IJob job, long time) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void moveJobToStep(SimulationEventList eventList, IJob job, IStep iStep, long time) {
+		job.setCurrentStep(iStep);
+		//for (IStep step : job.getCurrentSteps()) {
+			if (iStep.getRequiredResourceGroup() == null) {
+				job.setCurrentStep(iStep);
+				// events.addAll(
+				startProcess(eventList, job, null, time);// );
+			} else {
+				// events.addAll(
+				jobArrive(eventList, iStep.getRequiredResourceGroup(), job, time);// );
+			}
+
+		//}
+
+		
 	}
 
 	private void reorganizeJobBefore() {
