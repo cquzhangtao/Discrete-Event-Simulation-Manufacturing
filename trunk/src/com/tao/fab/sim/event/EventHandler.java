@@ -105,6 +105,42 @@ public class EventHandler {
 		}
 		return jobs;
 	}
+	
+	public void onJobArrive(SimulationEventList eventList, IResourceGroup rg, IJob job, long time){
+		
+		//if the resourcegroup has no front queue, what to do?
+		
+		if (!(job instanceof IProductJob)) {
+			if(rg.hasFrontQueue()){
+			rg.getFrontQueue().add(job);
+			// events.addAll(
+			seizeResources(eventList, rg, job, time);// );
+			}else{
+				if(!seizeResources(eventList, rg, job, time)){
+					Log.e(tag, "Something goes wrong");
+				}
+			}
+			return;
+		}
+		// product job
+		IStep pstep = job.getPreviousStep();
+		IStep cstep = job.getCurrentStep(rg);
+		
+		if(cstep.getReorganizeConfig()==null||pstep!=null&&pstep.getReorganizeConfig()==cstep.getReorganizeConfig()){
+			rg.getFrontQueue().add(job);
+			seizeResources(eventList, rg, job, time);// );
+		}else{
+		
+		reorganizeJob(eventList, rg,job,time);
+		}
+		
+		
+	}
+
+	private void reorganizeJob(SimulationEventList eventList, IResourceGroup rg, IJob job, long time) {
+		// TODO Auto-generated method stub
+		
+	}
 
 	public void jobArrive(SimulationEventList eventList, IResourceGroup rg, IJob job, long time) {
 		Log.d(tag, "job arrives at resourcegroup ");
@@ -423,7 +459,7 @@ public class EventHandler {
 		return;// events;
 	}
 
-	private void seizeResources(SimulationEventList eventList, IResourceGroup rg, IJob job, long time) {
+	private boolean seizeResources(SimulationEventList eventList, IResourceGroup rg, IJob job, long time) {
 		// void events=new Arrayvoid();
 		List<IResource> iress = new ArrayList<IResource>();
 		for (IResource res : rg.getResources()) {
@@ -441,7 +477,7 @@ public class EventHandler {
 		int requiredResourceNum = job.getCurrentStep(rg).getRequiredResourceNum();
 
 		if (iress.size() < requiredResourceNum) {
-			return;// events;
+			return false;// events;
 		}
 
 		ResourcePriorityUtil.sort(iress);
@@ -459,7 +495,7 @@ public class EventHandler {
 
 		}
 
-		return;// events;
+		return true;// events;
 
 	}
 
@@ -906,16 +942,14 @@ public class EventHandler {
 	}
 
 	private void onJobFinishStep(SimulationEventList eventList, IJob job, long time) {
-
+		IResourceGroup rg = job.getCurrentStep().getRequiredResourceGroup();
 		if (job.canNextStepAcceptMe()) {
 			moveJobToNextStep(eventList, job, time);
 			if (job.canReleaseResourcesNow()) {
-				// events.addAll(
 				releaseResources(eventList, job, time);// );
 			}
-		} else if (!job.getCurrentStep().getRequiredResourceGroup().isRearQueueFull()) {
-			job.getCurrentStep().getRequiredResourceGroup().addJobToRearQueue(job);
-			// events.addAll(
+		} else if (rg!=null&&!rg.hasRearQueue()&&!rg.isRearQueueFull()) {
+			rg.addJobToRearQueue(job);
 			onJobEnterRearQueue(eventList, job, time);// );
 		} else {
 			for (IResource res : job.getAssignedResources(job.getCurrentStep())) {
@@ -957,8 +991,24 @@ public class EventHandler {
 		// TODO Auto-generated method stub
 
 		//// void events=new Arrayvoid();
+		if(!(job instanceof IProductJob)){
+			return;
+		}
 		IResourceGroup rg = job.getCurrentStep().getRequiredResourceGroup();
-
+		IStep nstep = job.getNextStep();
+		IStep cstep = job.getCurrentStep(rg);
+		if(cstep.getReorganizeConfig()==null||nstep!=null&&nstep.getReorganizeConfig()==cstep.getReorganizeConfig()){
+			return;
+		}
+		recoverOrganizedJob(eventList,job,time);	
+		
+		
+		
+		
+		
+		ftyhere 
+		
+		
 		// otherr jobs, like prepare job
 		if (job.getType() == null) {
 			//// events.addAll(
@@ -1031,6 +1081,11 @@ public class EventHandler {
 		}
 
 		// return;// events;
+	}
+
+	private void recoverOrganizedJob(SimulationEventList eventList, IJob job, long time) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	public void startInterruptionJob(SimulationEventList eventList, IResource res, IJob job, long time) {

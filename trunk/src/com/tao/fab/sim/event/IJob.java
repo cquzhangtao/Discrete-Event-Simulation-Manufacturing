@@ -84,6 +84,7 @@ public interface IJob extends ISimEntity{
 	void setRoute(IRoute route);
 	boolean canNextStepAcceptMe();
 	boolean canReleaseResourcesNow();
+	IStep getNextStep();
 	
 
 	//void setCompleteCombining(boolean b);
