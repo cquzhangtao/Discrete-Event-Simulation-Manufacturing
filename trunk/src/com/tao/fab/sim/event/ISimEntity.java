@@ -4,6 +4,6 @@ import common.IEntity;
 import simulation.core.ISimulation;
 
 public interface ISimEntity extends IEntity{
-	ISimulation getSimulation();
-	void setSimulation(ISimulation sim);
+	//ISimulation getSimulation();
+	//void setSimulation(ISimulation sim);
 }

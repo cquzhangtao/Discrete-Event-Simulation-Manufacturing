@@ -17,18 +17,6 @@ public class EventHandler {
 		IProductJob pjob = product.getJob().clone();
 		pjob.setProduct(product);
 
-		/*
-		 * long nextime = product.getTimeToNextRelease(); AbstractEvent event =
-		 * new AbstractEvent() {
-		 * 
-		 * 
-		 * @Override public void response(long currentTime) {
-		 * releaseJob(product, time); return null; }
-		 * 
-		 * }; event.setTime(nextime+product.getSimulation().getCurrentTime());
-		 * product.getSimulation().addEvent(event);;
-		 */
-
 		pjob.addJobFinishListener(new JobFinishListener() {
 
 			@Override
@@ -39,16 +27,42 @@ public class EventHandler {
 
 			}
 		});
-		Log.d(tag, "job started", time);
+
 		// return
-		startJob(eventList, pjob, time);
+
+		if (!startJob(eventList, pjob, time)) {
+			product.addJobToReleaseQueue(pjob);
+		}
+
+		if (!product.isReleaseQueueFull()) {
+
+			long nextime = product.getTimeToNextRelease();
+			AbstractEvent event = new AbstractEvent() {
+
+				@Override
+				public void response(SimulationEventList eventList, long currentTime) {
+					releaseJob(eventList, product, time);
+				}
+
+			};
+			eventList.add(event, nextime);
+		}
+
+		// event.setTime(+product.getSimulation().getCurrentTime());
+
 	}
 
-	public void startJob(SimulationEventList eventList, IJob job, long time) {
-		Log.d(tag, job.getName() + "started");
+	public boolean startJob(SimulationEventList eventList, IJob job, long time) {
+
 		// return
-		
-		moveJobToNextStep(eventList, job, time);
+		if (job.canNextStepAcceptMe()) {
+			Log.d(tag, job.getName() + "started");
+			moveJobToNextStep(eventList, job, time);
+			return true;
+		} else {
+			Log.d(tag, job.getName() + "started");
+			return false;
+		}
 		/*
 		 * for (IStep step : job.getCurrentSteps()) {
 		 * if(step.getRequiredResourceGroup()==null){
@@ -292,56 +306,54 @@ public class EventHandler {
 	// 1) buffer is full and in free resources no one can process job
 	// 2)for transportation, see the destination
 
-	public void onSuccResourceGroupQueueAvailable(SimulationEventList eventList, IResourceGroup rg,IResourceGroup sucrg, long time) {
+	public void onSuccResourceGroupQueueAvailable(SimulationEventList eventList, IResourceGroup rg,
+			IResourceGroup sucrg, long time) {
 		// TODO
-		if(rg.hasRearQueue()){
-		if(rg.getRearMergQueue()!=null){
-			for(IJob job:rg.getRearMergQueue()){
-				if(job.canNextStepAcceptMe()){
-					moveJobToNextStep(eventList, job, time);
-					for(IJob ijob:job.getChildren()){
-						onJobExitRearQueue(eventList, ijob, time);
+		if (rg.hasRearQueue()) {
+			if (rg.getRearMergQueue() != null) {
+				for (IJob job : rg.getRearMergQueue()) {
+					if (job.canNextStepAcceptMe()) {
+						moveJobToNextStep(eventList, job, time);
+						for (IJob ijob : job.getChildren()) {
+							onJobExitRearQueue(eventList, ijob, time);
+						}
+					}
+					if (sucrg.isFrontQueueFull()) {
+						break;
 					}
 				}
-				if(sucrg.isFrontQueueFull()){
-					break;
+			} else {
+				for (IJob job : rg.getRearQueue()) {
+					if (job.canNextStepAcceptMe()) {
+						moveJobToNextStep(eventList, job, time);
+						onJobExitRearQueue(eventList, job, time);
+					}
+					if (sucrg.isFrontQueueFull()) {
+						break;
+					}
 				}
 			}
-		}else{
-			for(IJob job:rg.getRearQueue()){
-				if(job.canNextStepAcceptMe()){
-					moveJobToNextStep(eventList, job, time);
-					onJobExitRearQueue(eventList, job, time);
-				}
-				if(sucrg.isFrontQueueFull()){
-					break;
-				}
-			}
-		}
-		}else{
-			for(IResource res:rg.getResources()){
-				
-				if(!res.isBlocked()){
+		} else {
+			for (IResource res : rg.getResources()) {
+
+				if (!res.isBlocked()) {
 					continue;
 				}
-				
-				if(res.getCurrentJob().canNextStepAcceptMe()){
+
+				if (res.getCurrentJob().canNextStepAcceptMe()) {
 					moveJobToNextStep(eventList, res.getCurrentJob(), time);
 					res.unblock();
-					if(res.getCurrentJob().canReleaseResourcesNow()){
+					if (res.getCurrentJob().canReleaseResourcesNow()) {
 						releaseResources(eventList, res.getCurrentJob(), time);
 					}
 				}
-				
-				if(sucrg.isFrontQueueFull()){
+
+				if (sucrg.isFrontQueueFull()) {
 					break;
 				}
 			}
-			
+
 		}
-		
-		
-		
 
 	}
 
@@ -358,10 +370,39 @@ public class EventHandler {
 			Log.e(tag, "remove from queue error");
 		}
 
-		for (IResourceGroup prerg : rg.getPreResourceGroups()) {
-			onSuccResourceGroupQueueAvailable(eventList, prerg, rg,time);
-			if (rg.isFrontQueueFull()) {
-				break;
+		if(rg.getPreResourceGroups()!=null){
+			for (IResourceGroup prerg : rg.getPreResourceGroups()) {
+				onSuccResourceGroupQueueAvailable(eventList, prerg, rg,time);
+				if (rg.isFrontQueueFull()) {
+					break;
+				}
+			}
+		}else if(job instanceof IProductJob){
+			for(IProduct product:((IProductJob) job).getProduct().getAllProducts()){
+				for(int i=0;i<product.getReleaseQueue().size();i++){
+					IJob pjob=product.getReleaseQueue().get(i);
+					if(startJob(eventList,pjob,time)){
+						product.getReleaseQueue().remove(i);
+						i--;
+					}
+					if (rg.isFrontQueueFull()) {
+						break;
+					}
+				}
+				if (!product.isReleaseQueueEmpty()) {
+
+					long nextime = product.getTimeToNextRelease();
+					AbstractEvent event = new AbstractEvent() {
+
+						@Override
+						public void response(SimulationEventList eventList, long currentTime) {
+							releaseJob(eventList, product, time);
+						}
+
+					};
+					eventList.add(event, nextime);
+				}
+				
 			}
 		}
 
@@ -504,37 +545,37 @@ public class EventHandler {
 
 	public void oneResourceIdle(SimulationEventList eventList, IResource res, long time) {
 		// void events=new Arrayvoid();
-		//TODO if no front queue, deal with blocked job
-		if(res.getResourceGroup().hasFrontQueue()){
-		if (res.getResourceGroup().getJobType() == res.getResourceGroup().getJobTypeInQueue()) {
-			// events.addAll(
-			oneResourceIdleNoOrg(eventList, res, time);// );
+		// TODO if no front queue, deal with blocked job
+		if (res.getResourceGroup().hasFrontQueue()) {
+			if (res.getResourceGroup().getJobType() == res.getResourceGroup().getJobTypeInQueue()) {
+				// events.addAll(
+				oneResourceIdleNoOrg(eventList, res, time);// );
+			} else {
+				// events.addAll(
+				batching(eventList, res.getResourceGroup(), false, time);// );
+			}
 		} else {
-			// events.addAll(
-			batching(eventList, res.getResourceGroup(), false, time);// );
-		}
-		}else{
-			
+
 			for (IResourceGroup prerg : res.getResourceGroup().getPreResourceGroups()) {
-				
-			for(IResource ress:prerg.getResources()){
-				
-				if(!ress.isBlocked()){
-					continue;
-				}
-				
-				if(ress.getCurrentJob().canNextStepAcceptMe()){
-					moveJobToNextStep(eventList, ress.getCurrentJob(), time);
-					ress.unblock();
-					if(ress.getCurrentJob().canReleaseResourcesNow()){
-						releaseResources(eventList, ress.getCurrentJob(), time);
+
+				for (IResource ress : prerg.getResources()) {
+
+					if (!ress.isBlocked()) {
+						continue;
+					}
+
+					if (ress.getCurrentJob().canNextStepAcceptMe()) {
+						moveJobToNextStep(eventList, ress.getCurrentJob(), time);
+						ress.unblock();
+						if (ress.getCurrentJob().canReleaseResourcesNow()) {
+							releaseResources(eventList, ress.getCurrentJob(), time);
+						}
+					}
+
+					if (res.getResourceGroup().isFrontQueueFull()) {
+						break;
 					}
 				}
-				
-				if(res.getResourceGroup().isFrontQueueFull()){
-					break;
-				}
-			}
 			}
 		}
 		return;// events;
@@ -731,44 +772,28 @@ public class EventHandler {
 		// TODO
 	}
 
-	private void endProcess(SimulationEventList eventList, IJob job, long time) {
-		// void events=new Arrayvoid();
-		IResourceGroup rg = job.getCurrentStep().getRequiredResourceGroup();
-
-		// otherr jobs, like prepare job
-		if (job.getType() == null) {
-			// events.addAll(
-			moveJobToNextStep(eventList, job, time);// );
-			return;// events;
-		}
-
-		// single
-		if (job.getType().isOriginalType()) {
-			// events.addAll(
-			moveJobToNextStep(eventList, job, time);// );
-		}
-
-		// unit
-		else if (job.getType() == rg.getJobTypeInQueue()) {
-			job.getFather().oneChildrenDone();
-			if (job.getFather().allChildrenDone()) {
-				// job.getFather().goToNextStep();
-				// events.addAll(
-				moveJobToNextStep(eventList, job.getFather(), time);// );
-			}
-		}
-		// batch
-		else {
-			for (IJob ijob : job.getChildren()) {
-				ijob.getFather().oneChildrenDone();
-				if (ijob.getFather().allChildrenDone()) {
-					// events.addAll(
-					moveJobToNextStep(eventList, ijob.getFather(), time);// );
-				}
-			}
-		}
-		return;// events;
-	}
+	/*
+	 * private void endProcess(SimulationEventList eventList, IJob job, long
+	 * time) { // void events=new Arrayvoid(); IResourceGroup rg =
+	 * job.getCurrentStep().getRequiredResourceGroup();
+	 * 
+	 * // otherr jobs, like prepare job if (job.getType() == null) { //
+	 * events.addAll( moveJobToNextStep(eventList, job, time);// ); return;//
+	 * events; }
+	 * 
+	 * // single if (job.getType().isOriginalType()) { // events.addAll(
+	 * moveJobToNextStep(eventList, job, time);// ); }
+	 * 
+	 * // unit else if (job.getType() == rg.getJobTypeInQueue()) {
+	 * job.getFather().oneChildrenDone(); if (job.getFather().allChildrenDone())
+	 * { // job.getFather().goToNextStep(); // events.addAll(
+	 * moveJobToNextStep(eventList, job.getFather(), time);// ); } } // batch
+	 * else { for (IJob ijob : job.getChildren()) {
+	 * ijob.getFather().oneChildrenDone(); if
+	 * (ijob.getFather().allChildrenDone()) { // events.addAll(
+	 * moveJobToNextStep(eventList, ijob.getFather(), time);// ); } } }
+	 * return;// events; }
+	 */
 
 	protected void startProcess(SimulationEventList eventList, IJob job, IResourceGroup rg, long time) {
 		if (rg != null) {
@@ -782,14 +807,7 @@ public class EventHandler {
 
 				@Override
 				public void onJobFinish(SimulationEventList eventList, IJob resourceProcessJob, long time) {
-					//// void events=new Arrayvoid();
-					//// events.addAll(
-
-					releaseResources(eventList, job, time);// );
-					//// events.addAll(
-
-					endProcess(eventList, job, time);// );
-					return;// events;
+					onJobFinishStep(eventList, job, time);
 
 				}
 			});
@@ -804,36 +822,41 @@ public class EventHandler {
 				// @Override
 				public void response(SimulationEventList eventList, long currentTime) {
 					//// void events=new Arrayvoid();
-
-					if (job.canNextStepAcceptMe()) {
-						moveJobToNextStep(eventList, job, processTime);
-						if (job.canReleaseResourcesNow()) {
-							// events.addAll(
-							releaseResources(eventList, job, currentTime);// );
-						}
-					} else if (!job.getCurrentStep().getRequiredResourceGroup().isRearQueueFull()) {
-						job.getCurrentStep().getRequiredResourceGroup().addJobToRearQueue(job);
-						// events.addAll(
-						onJobEnterRearQueue(eventList, job, time);// );
-					} else {
-						for (IResource res : job.getAssignedResources(job.getCurrentStep())) {
-							res.block();
-						}
-
-						//// events.addAll(
-						releaseResources(eventList, job, currentTime);// );
-						//// events.addAll(
-						endProcess(eventList, job, currentTime);// );
-					}
+					onJobFinishStep(eventList, job, currentTime);
 
 					return;// events;
 				}
 
 			};
-			event.setTime(processTime + job.getSimulation().getCurrentTime());
-			eventList.add(event);
+			// event.setTime(processTime +
+			// job.getSimulation().getCurrentTime());
+			eventList.add(event, processTime);
 		}
 		return;// events;
+	}
+
+	private void onJobFinishStep(SimulationEventList eventList, IJob job, long time) {
+
+		if (job.canNextStepAcceptMe()) {
+			moveJobToNextStep(eventList, job, time);
+			if (job.canReleaseResourcesNow()) {
+				// events.addAll(
+				releaseResources(eventList, job, time);// );
+			}
+		} else if (!job.getCurrentStep().getRequiredResourceGroup().isRearQueueFull()) {
+			job.getCurrentStep().getRequiredResourceGroup().addJobToRearQueue(job);
+			// events.addAll(
+			onJobEnterRearQueue(eventList, job, time);// );
+		} else {
+			for (IResource res : job.getAssignedResources(job.getCurrentStep())) {
+				res.block();
+			}
+
+			//// events.addAll(
+			// releaseResources(eventList, job, currentTime);// );
+			//// events.addAll(
+			// endProcess(eventList, job, currentTime);// );
+		}
 	}
 
 	private void onJobExitRearQueue(SimulationEventList eventList, IJob job, long time) {
@@ -869,14 +892,14 @@ public class EventHandler {
 		// otherr jobs, like prepare job
 		if (job.getType() == null) {
 			//// events.addAll(
-			//moveJobToNextStep(eventList, job, time);// );
+			// moveJobToNextStep(eventList, job, time);// );
 			return;// events;
 		}
 
 		// single
 		if (job.getType().isOriginalType()) {
 			//// events.addAll(
-			//moveJobToNextStep(eventList, job, time);// );
+			// moveJobToNextStep(eventList, job, time);// );
 		}
 
 		// unit
@@ -885,7 +908,7 @@ public class EventHandler {
 			if (job.getFather().allChildrenDone()) {
 				// job.getFather().goToNextStep();
 				//// events.addAll(
-				//moveJobToNextStep(eventList, job.getFather(), time);// );
+				// moveJobToNextStep(eventList, job.getFather(), time);// );
 				if (job.getFather().canNextStepAcceptMe()) {
 					//// events.addAll(
 
@@ -901,11 +924,10 @@ public class EventHandler {
 					for (IJob child : job.getFather().getChildren()) {
 						//// events.addAll(
 						rg.getRearQueue().remove(child);
-						//onJobExitRearQueue(eventList, child, time);// );
+						// onJobExitRearQueue(eventList, child, time);// );
 					}
 				}
 
-				
 			}
 		}
 		// batch
@@ -914,7 +936,8 @@ public class EventHandler {
 				ijob.getFather().oneChildrenDone();
 				if (ijob.getFather().allChildrenDone()) {
 					//// events.addAll(
-					//moveJobToNextStep(eventList, ijob.getFather(), time);// );
+					// moveJobToNextStep(eventList, ijob.getFather(), time);//
+					//// );
 					if (ijob.getFather().canNextStepAcceptMe()) {
 						//// events.addAll(
 
@@ -929,7 +952,7 @@ public class EventHandler {
 						for (IJob child : job.getFather().getChildren()) {
 							//// events.addAll(
 							rg.getRearQueue().remove(child);
-							//onJobExitRearQueue(eventList, child, time);// );
+							// onJobExitRearQueue(eventList, child, time);// );
 						}
 					}
 
@@ -962,8 +985,9 @@ public class EventHandler {
 					}
 
 				};
-				event.setTime(nextTime + job.getSimulation().getCurrentTime());
-				eventList.add(event);
+				// event.setTime(nextTime +
+				// job.getSimulation().getCurrentTime());
+				eventList.add(event, nextTime);
 				// return;// events;
 
 			}
