@@ -87,7 +87,7 @@ public class EventHandler {
 
 	private List<IJob> splitJob(IResourceGroup rg, IJob job) {
 		IStep step = job.getCurrentStep(rg);
-		ISplittingConfig sconfig = step.getSplittingConfig();
+		ReorganizeJobConfig sconfig = step.getReorganizeConfig();
 		int size = sconfig.getSplitSize();
 		int num = job.getChildren().size() / size;
 		List<IJob> jobs = new ArrayList<IJob>();
@@ -308,9 +308,9 @@ public class EventHandler {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			BatchingConfiguration bconfig = wafer.getCurrentStep(rg).getBatchingConfig();
+			ReorganizeJobConfig bconfig = wafer.getCurrentStep(rg).getReorganizeConfig();
 
-			batch.setBatchConfig(bconfig);
+			batch.setReorganizeJobConfig(bconfig);
 			batch.getChildren().add(wafer);
 			batches.add(batch);
 

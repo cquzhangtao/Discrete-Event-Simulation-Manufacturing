@@ -86,6 +86,7 @@ public interface IJob extends ISimEntity{
 	boolean canReleaseResourcesNow();
 	IStep getNextStep();
 	IJob getCurrentFather();
+	void setReorganizeJobConfig(ReorganizeJobConfig bconfig);
 	
 
 	//void setCompleteCombining(boolean b);

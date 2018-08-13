@@ -4,4 +4,6 @@ public interface ReorganizeJobConfig {
 
 	ReorganizeJobType getReorganizeJobType();
 
+	int getSplitSize();
+
 }
