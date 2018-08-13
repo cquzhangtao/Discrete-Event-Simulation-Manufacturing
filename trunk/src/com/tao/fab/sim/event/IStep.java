@@ -35,6 +35,6 @@ public interface IStep {
 
 	IStep getReworkingStep();
 
-	Object getReorganizeConfig();
+	ReorganizeJobConfig getReorganizeConfig();
 
 }

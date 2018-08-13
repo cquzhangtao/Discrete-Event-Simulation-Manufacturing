@@ -127,11 +127,17 @@ public class EventHandler {
 		IStep cstep = job.getCurrentStep(rg);
 		
 		if(cstep.getReorganizeConfig()==null||pstep!=null&&pstep.getReorganizeConfig()==cstep.getReorganizeConfig()){
+			if(rg.hasFrontQueue()){
 			rg.getFrontQueue().add(job);
 			seizeResources(eventList, rg, job, time);// );
+			}else{
+				if(!seizeResources(eventList, rg, job, time)){
+					Log.e(tag, "Something goes wrong");
+				}
+			}
 		}else{
 		
-		reorganizeJob(eventList, rg,job,time);
+			reorganizeJob(eventList, rg,job,time);
 		}
 		
 		
@@ -139,10 +145,28 @@ public class EventHandler {
 
 	private void reorganizeJob(SimulationEventList eventList, IResourceGroup rg, IJob job, long time) {
 		// TODO Auto-generated method stub
+		ReorganizeJobConfig config=job.getCurrentStep().getReorganizeConfig();
+		
+		if(config.getReorganizeJobType()==ReorganizeJobType.complete_splitting){
+			rg.getFrontQueue().addAll(job.getChildren());
+			seizeResources(eventList, rg, job.getChildren(), time);// );
+		}else if(config.getReorganizeJobType()==ReorganizeJobType.complete_combining){
+			rg.getFrontReorganQueue().add(job);
+			batching(eventList, rg, false, time);
+			
+		}else if(config.getReorganizeJobType()==ReorganizeJobType.partial_combining){
+			rg.getFrontReorganQueue().addAll(job.getChildren());
+			batching(eventList, rg, false, time);
+			
+		}else if(config.getReorganizeJobType()==ReorganizeJobType.partial_splitting){
+			List<IJob> subJobs = splitJob(rg, job);
+			rg.getFrontQueue().addAll(subJobs);
+			seizeResources(eventList, rg, subJobs, time);
+		}
 		
 	}
 
-	public void jobArrive(SimulationEventList eventList, IResourceGroup rg, IJob job, long time) {
+	/*public void jobArrive(SimulationEventList eventList, IResourceGroup rg, IJob job, long time) {
 		Log.d(tag, "job arrives at resourcegroup ");
 		// void events=new Arrayvoid();
 		if (job instanceof IProductJob) {
@@ -230,7 +254,7 @@ public class EventHandler {
 		}
 		return;// events;
 
-	}
+	}*/
 
 	private void seizeResources(SimulationEventList eventList, IResourceGroup rg, List<IJob> jobs, long time) {
 		// void events=new Arrayvoid();
@@ -259,7 +283,7 @@ public class EventHandler {
 
 		batches.addAll(rg.getFrontQueueWithOrganizedJobs());
 
-		for (IJob wafer : rg.getFrontQueue()) {
+		for (IJob wafer : rg.getFrontReorganQueue()) {
 			boolean batched = false;
 
 			for (IJob batch : batches) {
@@ -833,7 +857,7 @@ public class EventHandler {
 					startProcess(eventList, job, null, time);// );
 				} else {
 					// events.addAll(
-					jobArrive(eventList, step.getRequiredResourceGroup(), job, time);// );
+					onJobArrive(eventList, step.getRequiredResourceGroup(), job, time);// );
 				}
 
 			}
@@ -861,7 +885,7 @@ public class EventHandler {
 				startProcess(eventList, job, null, time);// );
 			} else {
 				// events.addAll(
-				jobArrive(eventList, iStep.getRequiredResourceGroup(), job, time);// );
+				onJobArrive(eventList, iStep.getRequiredResourceGroup(), job, time);// );
 			}
 
 		//}
@@ -988,9 +1012,6 @@ public class EventHandler {
 	}
 
 	private void onJobEnterRearQueue(SimulationEventList eventList, IJob job, long time) {
-		// TODO Auto-generated method stub
-
-		//// void events=new Arrayvoid();
 		if(!(job instanceof IProductJob)){
 			return;
 		}
@@ -1002,28 +1023,15 @@ public class EventHandler {
 		}
 		recoverOrganizedJob(eventList,job,time);	
 		
-		
-		
-		
-		
-		ftyhere 
-		
-		
-		// otherr jobs, like prepare job
-		if (job.getType() == null) {
-			//// events.addAll(
-			// moveJobToNextStep(eventList, job, time);// );
-			return;// events;
-		}
+	
+	}
 
-		// single
-		if (job.getType().isOriginalType()) {
-			//// events.addAll(
-			// moveJobToNextStep(eventList, job, time);// );
-		}
+	private void recoverOrganizedJob(SimulationEventList eventList, IJob job, long time) {
 
-		// unit
-		else if (job.getType() == rg.getJobTypeInQueue()) {
+		ReorganizeJobConfig reorgconfig = job.getCurrentStep().getReorganizeConfig();
+		IResourceGroup rg = job.getCurrentStep().getRequiredResourceGroup();
+		ReorganizeJobType type=reorgconfig.getReorganizeJobType();
+		if(type==ReorganizeJobType.complete_splitting){
 			job.getFather().oneChildrenDone();
 			if (job.getFather().allChildrenDone()) {
 				// job.getFather().goToNextStep();
@@ -1049,42 +1057,46 @@ public class EventHandler {
 				}
 
 			}
-		}
-		// batch
-		else {
-			for (IJob ijob : job.getChildren()) {
-				ijob.getFather().oneChildrenDone();
-				if (ijob.getFather().allChildrenDone()) {
+		}else if(type==ReorganizeJobType.complete_combining){
+			for(IJob child:job.getChildren()){
+				if (child.canNextStepAcceptMe()) {
 					//// events.addAll(
-					// moveJobToNextStep(eventList, ijob.getFather(), time);//
-					//// );
-					if (ijob.getFather().canNextStepAcceptMe()) {
-						//// events.addAll(
 
-						moveJobToNextStep(eventList, ijob.getFather(), time);// );
-						for (IJob child : ijob.getFather().getChildren()) {
-							//// events.addAll(
+					moveJobToNextStep(eventList, child, time);// );
+						//onJobExitRearQueue(eventList, child, time);// );
 
-							onJobExitRearQueue(eventList, child, time);// );
-						}
+				} else {
+					rg.addJobToRearMergeQueue(job);
+					
+				}
+			}
+			rg.getRearQueue().remove(job);
+		}
+		else if(type==ReorganizeJobType.partial_splitting||type==ReorganizeJobType.partial_combining){
+			for(IJob child:job.getChildren()){
+				child.getFather().oneChildrenDone();
+				//job.getChildren().remove(child);
+				if (child.getFather().allChildrenDone()) {
+					if (child.getFather().canNextStepAcceptMe()) {
+
+						moveJobToNextStep(eventList, child.getFather(), time);// );
+						
+
+
 					} else {
-						rg.addJobToRearMergeQueue(job);
-						for (IJob child : job.getFather().getChildren()) {
-							//// events.addAll(
-							rg.getRearQueue().remove(child);
-							// onJobExitRearQueue(eventList, child, time);// );
-						}
+						rg.addJobToRearMergeQueue(child.getFather());
 					}
-
+					for (IJob ichild : child.getFather().getChildren()) {
+						//// events.addAll(
+						ichild.getCurrentFather().oneChildrenDone();
+						if(ichild.getCurrentFather().allChildrenDone()){
+							onJobExitRearQueue(eventList, ichild.getCurrentFather(), time);// );	
+						}
+						
+					}
 				}
 			}
 		}
-
-		// return;// events;
-	}
-
-	private void recoverOrganizedJob(SimulationEventList eventList, IJob job, long time) {
-		// TODO Auto-generated method stub
 		
 	}
 

@@ -85,6 +85,7 @@ public interface IJob extends ISimEntity{
 	boolean canNextStepAcceptMe();
 	boolean canReleaseResourcesNow();
 	IStep getNextStep();
+	IJob getCurrentFather();
 	
 
 	//void setCompleteCombining(boolean b);

@@ -53,4 +53,6 @@ public interface IResourceGroup {
 
 	boolean hasFrontQueue();
 
+	List<IJob> getFrontReorganQueue();
+
 }
