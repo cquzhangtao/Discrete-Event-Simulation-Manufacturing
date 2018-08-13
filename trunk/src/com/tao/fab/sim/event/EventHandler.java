@@ -275,13 +275,13 @@ public class EventHandler {
 			return;// events;
 		}
 
-		if (rg.getFrontQueue().isEmpty()) {
+		if (rg.getFrontReorganQueue().isEmpty()&&rg.getFrontQueue().isEmpty()) {
 			return;// events;
 		}
 
 		List<IJob> batches = new ArrayList<IJob>();
 
-		batches.addAll(rg.getFrontQueueWithOrganizedJobs());
+		batches.addAll(rg.getFrontQueue());
 
 		for (IJob wafer : rg.getFrontReorganQueue()) {
 			boolean batched = false;
