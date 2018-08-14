@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class Job extends SimEntity implements IJob{
 	
-	private JobType type;
+
 	
 	private List<IJob> children;
 	private IJob father;
@@ -29,10 +29,7 @@ public class Job extends SimEntity implements IJob{
 	}
 	
 
-	@Override
-	public JobType getType() {
-		return type;
-	}
+	
 
 	@Override
 	public List<IJob> getChildren() {
@@ -71,9 +68,9 @@ public class Job extends SimEntity implements IJob{
 	}
 
 	@Override
-	public boolean isAllResourcesReady(IResourceGroup rg) {
+	public boolean isAllResourcesReady() {
 		
-		return readyResourceCounter==getCurrentStep(rg).getRequiredResourceNum();
+		return readyResourceCounter==getCurrentStep().getRequiredResourceNum();
 	}
 
 	@Override
@@ -81,12 +78,7 @@ public class Job extends SimEntity implements IJob{
 		return false;
 	}
 
-	@Override
-	public void setBatchConfig(BatchingConfiguration bconfig) {
-		// TODO Auto-generated method stub
-		
-	}
-
+	
 	@Override
 	public boolean batchReadyToGo(IResource res, long time) {
 		// TODO Auto-generated method stub
@@ -154,7 +146,6 @@ public class Job extends SimEntity implements IJob{
 	
 	public void clone(IJob job){
 		job.setRoute(route);
-		job.setType(type);
 		super.clone(job);
 	}
 
@@ -164,15 +155,7 @@ public class Job extends SimEntity implements IJob{
 		return new Job();
 	}
 	
-	@Override
-	public IStep getCurrentStep(IResourceGroup rg) {
-		for(IStep step:currentSteps){
-			if(step.getRequiredResourceGroup()==rg){
-				return step;
-			}
-		}
-		return null;
-	}
+	
 
 	@Override
 	public void setCurrentStep(IStep currentStep) {
@@ -191,56 +174,11 @@ public class Job extends SimEntity implements IJob{
 		return previousStep;
 	}
 
-	@Override
-	public void setReorganizedJobACurrentStep(boolean b) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public boolean isReorganizedJobInCurrentStep() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean fromPartialSplitting() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean fromPartialCombining() {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
 
 
 
-	@Override
-	public void setPartialSplitting(boolean b) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setPartialCombining(boolean partial) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public IJob getFatherAtCurrentStep() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IJob getFatherBeforeReorganizedAtCurrentStep() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
 
 	@Override
 	public IRoute getRoute() {
@@ -256,10 +194,51 @@ public class Job extends SimEntity implements IJob{
 	}
 
 
+
+
 	@Override
-	public void setType(JobType type) {
-		this.type=type;
+	public boolean canNextStepAcceptMe() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+
+
+	@Override
+	public boolean canReleaseResourcesNow() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+
+
+	@Override
+	public IStep getNextStep() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+
+	@Override
+	public IJob getCurrentFather() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+
+	@Override
+	public void setReorganizeJobConfig(ReorganizeJobConfig bconfig) {
+		// TODO Auto-generated method stub
 		
 	}
+
+
+	
 
 }

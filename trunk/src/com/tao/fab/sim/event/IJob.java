@@ -4,8 +4,8 @@ import java.util.List;
 
 public interface IJob extends ISimEntity{
 
-	JobType getType();
-	void setType(JobType lot);
+	//JobType getType();
+	//void setType(JobType lot);
 
 	List<IJob> getChildren();
 
@@ -23,13 +23,13 @@ public interface IJob extends ISimEntity{
 
 	void oneResourceReady();
 
-	boolean isAllResourcesReady(IResourceGroup rg);
+	boolean isAllResourcesReady();
 
 	boolean canBatch(IJob job);
 
 	 IJob newInstance() ;
 
-	void setBatchConfig(BatchingConfiguration bconfig);
+	//void setBatchConfig(BatchingConfiguration bconfig);
 
 	boolean batchReadyToGo(IResource res, long time);
 
@@ -49,21 +49,21 @@ public interface IJob extends ISimEntity{
 
 	IJob clone();
 
-	boolean isReorganizedJobInCurrentStep();
+	//boolean isReorganizedJobInCurrentStep();
 
 	//job is one child of a original job
 	//boolean fromCompleteSplitting();
 
 	// a new job with some children of a original job
-	boolean fromPartialSplitting();
+	//boolean fromPartialSplitting();
 
 	//a new job with some other original jobs as children
 	//boolean fromCompleteCombining();
 
 	//a new job with some children of some original jobs
-	boolean fromPartialCombining();
+	//boolean fromPartialCombining();
 
-	IStep getCurrentStep(IResourceGroup rg);
+	//IStep getCurrentStep(IResourceGroup rg);
 
 	void setCurrentStep(IStep currentStep);
 
@@ -71,15 +71,15 @@ public interface IJob extends ISimEntity{
 
 	IStep getPreviousStep();
 
-	void setReorganizedJobACurrentStep(boolean b);
+	//void setReorganizedJobACurrentStep(boolean b);
 
-	void setPartialSplitting(boolean b);
+	//void setPartialSplitting(boolean b);
 
-	void setPartialCombining(boolean partial);
+	//void setPartialCombining(boolean partial);
 
-	IJob getFatherAtCurrentStep();
+	//IJob getFatherAtCurrentStep();
 
-	IJob getFatherBeforeReorganizedAtCurrentStep();
+	//IJob getFatherBeforeReorganizedAtCurrentStep();
 	
 	void setRoute(IRoute route);
 	boolean canNextStepAcceptMe();
@@ -87,6 +87,8 @@ public interface IJob extends ISimEntity{
 	IStep getNextStep();
 	IJob getCurrentFather();
 	void setReorganizeJobConfig(ReorganizeJobConfig bconfig);
+
+	boolean isReorganizedAtCurrentStep();
 	
 
 	//void setCompleteCombining(boolean b);

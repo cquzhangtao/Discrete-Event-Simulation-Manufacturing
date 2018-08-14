@@ -42,4 +42,6 @@ public interface IResource {
 
 	void block();
 
+	ProcessType getProcessType();
+
 }

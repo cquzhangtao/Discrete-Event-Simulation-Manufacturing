@@ -1,13 +1,10 @@
 package com.tao.fab.sim.event;
 
-import simulation.core.ISimulation;
-import simulation.core.Simulation;
-
 public class Test {
 
 	public static void main(String[] args) {
 		
-		ISimulation simulation=new Simulation();
+		Simulation simulation=new Simulation();
 		IResourceGroup og=new ResourceGroup();
 		og.setResourceNumber(1);
 		
@@ -24,7 +21,7 @@ public class Test {
 		step0.setResourceGroup(og);
 		route.setFirstStep(step0);
 		rg.setPrepareJob(prepaerJob);
-		prepaerJob.setSimulation(simulation);
+		//prepaerJob.setSimulation(simulation);
 		
 
 		
@@ -47,18 +44,18 @@ public class Test {
 		
 		
 		IProduct product=new Product();
-		product.setSimulation(simulation);
+		//product.setSimulation(simulation);
 		IProductJob job=new ProductJob();
-		job.setSimulation(simulation);
+		//job.setSimulation(simulation);
 		job.setProduct(product);
 		job.setRoute(route);
-		job.setType(JobType.Lot);
+		//job.setType(JobType.Lot);
 		
 		product.setProductJob(job);
 		
 		EventHandler h = new EventHandler();
-		simulation.addEvents(h.releaseJob(product, 0));
-		
+		//simulation.addEvents(h.releaseJob(product, 0));
+		h.releaseJob(simulation.getEvnetLists(), product, 0);
 		simulation.run();
 
 	}

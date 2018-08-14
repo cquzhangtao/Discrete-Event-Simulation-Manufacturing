@@ -8,7 +8,6 @@ public interface IStep {
 
 	long getProcessTime();
 
-	BatchingConfiguration getBatchingConfig();
 
 	boolean hasResourceJob();
 
@@ -16,10 +15,10 @@ public interface IStep {
 
 	IResourceGroup getRequiredResourceGroup();
 
-	ISplittingConfig getSplittingConfig();
+	
 
-	List<IStep> getNextSteps();
-	void setNextStep(IStep step);
+//	List<IStep> getNextSteps();
+//	void setNextStep(IStep step);
 
 	void setProcessTime(long time);
 

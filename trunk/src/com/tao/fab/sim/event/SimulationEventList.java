@@ -1,17 +1,24 @@
 package com.tao.fab.sim.event;
 
-import simulation.core.ISimulation;
-import simulation.core.event.ISimulationEvent;
+import java.util.List;
+
+
 
 public class SimulationEventList {
 	
-	public void add(AbstractEvent event,long nextime){
-		event.setTime(nextime+getSimulation().getCurrentTime());
+	
+	private List<ISimulationEvent> eventList;
+	private Simulation simulation;
+	public SimulationEventList(Simulation sim,List<ISimulationEvent> eventList) {
+		this.eventList=eventList;
+		simulation=sim;
 	}
 
-	private ISimulation getSimulation() {
-		// TODO Auto-generated method stub
-		return null;
+	public void add(AbstractEvent event,long nextime){
+		event.setTime(nextime+simulation.getCurrentTime());
+		eventList.add(event);
 	}
+
+	
 
 }
