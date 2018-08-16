@@ -88,6 +88,7 @@ public interface IJob extends ISimEntity{
 	IJob getCurrentFather();
 	void setReorganizeJobConfig(ReorganizeJobConfig bconfig);
 
+	
 	boolean isReorganizedAtCurrentStep();
 	
 
