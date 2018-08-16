@@ -7,5 +7,7 @@ public interface IRoute {
 	List<IStep> getFirstSteps();
 
 	void setFirstStep(IStep step);
+	
+	ConnectedSteps getFirstAlternativeSteps();
 
 }

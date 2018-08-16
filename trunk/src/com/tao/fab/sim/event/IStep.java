@@ -3,7 +3,12 @@ package com.tao.fab.sim.event;
 import java.util.List;
 
 public interface IStep {
-
+	
+	ResourceRequirement getResourceRequirement();
+	
+	ConnectedSteps getPredecessors();
+	ConnectedSteps getSucessors();
+	
 	int getRequiredResourceNum();
 
 	long getProcessTime();
@@ -35,5 +40,9 @@ public interface IStep {
 	IStep getReworkingStep();
 
 	ReorganizeJobConfig getReorganizeConfig();
+
+	boolean finished();
+
+	SeizedResources getSeizedResources();
 
 }
