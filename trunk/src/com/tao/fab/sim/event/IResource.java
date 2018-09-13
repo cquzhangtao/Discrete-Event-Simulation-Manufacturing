@@ -1,5 +1,7 @@
 package com.tao.fab.sim.event;
 
+import java.util.List;
+
 public interface IResource {
 
 	boolean isSeized();
@@ -24,7 +26,7 @@ public interface IResource {
 
 	boolean hasInterruptionJob();
 
-	IJob getInterruptionJob();
+	List<IJob> getInterruptionJobs();
 
 	IResourceGroup getResourceGroup();
 
@@ -43,5 +45,7 @@ public interface IResource {
 	void block();
 
 	ProcessType getProcessType();
+
+	IJob getInterruptionJob();
 
 }

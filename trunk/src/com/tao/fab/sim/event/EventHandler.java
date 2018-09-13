@@ -584,6 +584,7 @@ public class EventHandler {
 			IJob job = res.getInterruptionJob();
 			
 			startInterruptionJob(eventList, res, job, time);// );
+			res.setInterruptionJob(null);
 
 		} else {
 			
@@ -938,6 +939,17 @@ public class EventHandler {
 
 	public void startInterruptionJob(SimulationEventList eventList, IResource res, IJob job, long time) {
 		
+		if (res.hasInterruptionJob()) {
+			return;
+		}
+		if (res.isSeized()) {
+
+			res.setInterruptionJob(res.getInterruptionJob().clone());
+			return;
+
+		} 
+		
+		job.reset();
 		job.addJobFinishListener(new JobFinishListener() {
 
 			@Override
@@ -953,7 +965,7 @@ public class EventHandler {
 						
 						//
 
-						resourceInterrupted(eventList, res, time);// );
+						startInterruptionJob(eventList, res, job,time);// );
 						
 					}
 
@@ -979,12 +991,19 @@ public class EventHandler {
 		}
 		if (!res.isSeized()) {
 
+			
 			startInterruptionJob(eventList, res, res.getInterruptionJob().clone(), time);
 
 		} else {
 			res.setInterruptionJob(res.getInterruptionJob().clone());
 		}
 		
+	}
+	
+	public void startInterruptionJobs(SimulationEventList eventList, IResource res, long time){
+		for(IJob job:res.getInterruptionJobs()){
+			startInterruptionJob(eventList,res,job,time);
+		}
 	}
 
 }

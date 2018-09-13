@@ -90,6 +90,8 @@ public interface IJob extends ISimEntity{
 
 	
 	boolean isReorganizedAtCurrentStep();
+
+	void reset();
 	
 
 	//void setCompleteCombining(boolean b);
